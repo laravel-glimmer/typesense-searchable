@@ -2,6 +2,12 @@
 
 namespace Glimmer\TypesenseSearchable\Enums;
 
+use Glimmer\TypesenseSearchable\Exceptions\DefaultSortingFieldError;
+use Glimmer\TypesenseSearchable\Exceptions\EnableNestedFieldsError;
+use Glimmer\TypesenseSearchable\Exceptions\FieldParameterError;
+use Glimmer\TypesenseSearchable\Support\FieldParser;
+use Glimmer\TypesenseSearchable\Support\SchemaParser;
+use Glimmer\TypesenseSearchable\Support\TypeChecker;
 use Glimmer\TypesenseSearchable\Traits\EnumCasesAsArray;
 
 /**
@@ -21,4 +27,19 @@ enum SchemaParameter: string
     case DefaultSortingField = 'default_sorting_field';
     /** Enables nested field support in the schema. */
     case EnableNestedFields = 'enable_nested_fields';
+
+    /**
+     * @throws DefaultSortingFieldError
+     * @throws FieldParameterError
+     * @throws EnableNestedFieldsError
+     */
+    public function parse($value, $model, $type = null): string|array|bool
+    {
+        return match ($this) {
+            self::TokenSeparators, self::SymbolsToIndex => FieldParser::charsToArray($value),
+            self::DefaultSortingField => SchemaParser::onlyOneField(SchemaParser::typeIsSortable($value, $type,
+                $model), $model),
+            self::EnableNestedFields => TypeChecker::boolean($value, $model, $this->value, ''),
+        };
+    }
 }

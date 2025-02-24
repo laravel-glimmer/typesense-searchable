@@ -2,6 +2,9 @@
 
 namespace Glimmer\TypesenseSearchable\Enums;
 
+use Glimmer\TypesenseSearchable\Exceptions\SchemaFieldModifiersError;
+use Glimmer\TypesenseSearchable\Support\FieldParser;
+use Glimmer\TypesenseSearchable\Support\TypeChecker;
 use Glimmer\TypesenseSearchable\Traits\EnumCasesAsArray;
 
 /**
@@ -38,4 +41,17 @@ enum FieldModifier: string
     case TransformTo = 'transformTo';
     /** Overrides/Gets the value of the field to be saved on Typesense from the specified value or Closure. */
     case ValueFrom = 'valueFrom';
+
+    /**
+     * @throws SchemaFieldModifiersError
+     */
+    public function parse($value, $model, $field): mixed
+    {
+        return match ($this) {
+            self::Name, self::Locale => $value,
+            self::TokenSeparators, self::SymbolsToIndex => FieldParser::charsToArray($value),
+            self::TransformTo => TypeChecker::isAClosure($value, $model, $field, 'transformTo'),
+            self::ValueFrom => TypeChecker::isNotACallable($value, $model, $field, 'valueFrom'),
+        };
+    }
 }

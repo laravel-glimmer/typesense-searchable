@@ -2,6 +2,9 @@
 
 namespace Glimmer\TypesenseSearchable\Enums;
 
+use Glimmer\TypesenseSearchable\Exceptions\EnableNestedFieldsError;
+use Glimmer\TypesenseSearchable\Exceptions\FieldParameterError;
+use Glimmer\TypesenseSearchable\Support\TypeChecker;
 use Glimmer\TypesenseSearchable\Traits\EnumCasesAsArray;
 
 /**
@@ -35,4 +38,15 @@ enum FieldParameter: string
     case Infix = 'infix';
     /** Enables stemming the field words by Typesense. Default: `false` */
     case Stem = 'stem';
+
+    /**
+     * @throws FieldParameterError
+     * @throws EnableNestedFieldsError
+     */
+    public function parse($value, $model, $field): bool
+    {
+        return match ($this) {
+            default => TypeChecker::boolean($value, $model, $field, $this->value),
+        };
+    }
 }

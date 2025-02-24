@@ -2,6 +2,9 @@
 
 namespace Glimmer\TypesenseSearchable\Enums;
 
+use Arr;
+use Glimmer\TypesenseSearchable\Exceptions\DefaultSortingFieldError;
+use Glimmer\TypesenseSearchable\Exceptions\SchemaFieldTypeError;
 use Glimmer\TypesenseSearchable\Traits\EnumCasesAsArray;
 
 /**
@@ -49,4 +52,44 @@ enum FieldType: string
     case ObjectArray = 'object[]';
     /** Special type that is used to indicate a base64 encoded string of an image used for Image search */
     case Image = 'image';
+
+    /**
+     * @throws SchemaFieldTypeError
+     */
+    public function canBeQueried($model, $field): true
+    {
+        return match ($this) {
+            self::String, self::StringArray, self::StringAuto, self::Object, self::ObjectArray => true,
+            default => throw SchemaFieldTypeError::cannotBeQueried($model, $field, $this->value),
+        };
+    }
+
+    /**
+     * @throws DefaultSortingFieldError
+     */
+    public function canBeSorted($model, $field): true
+    {
+        return match ($this) {
+            self::Int32, self::Float => true,
+            default => throw DefaultSortingFieldError::fieldNotSortable($model, $field),
+        };
+    }
+
+    public function cast($value): array|float|int|bool|string
+    {
+        return match ($this) {
+            self::StringAuto, self::Auto => $value,
+            self::Image, self::String, => (string) $value,
+            self::StringArray => Arr::map(Arr::wrap($value), fn ($i) => (string) $i),
+            self::Int32, self::Int64 => (int) $value,
+            self::Int32Array, self::Int64Array => Arr::map(Arr::wrap($value), fn ($i) => (int) $i),
+            self::Float => (float) $value,
+            self::FloatArray => Arr::map(Arr::wrap($value), fn ($i) => (float) $i),
+            self::Bool => (bool) $value,
+            self::BoolArray => Arr::map(Arr::wrap($value), fn ($i) => (bool) $i),
+            self::Object, self::GeoPoint => (array) $value,
+            self::GeoPolygon, self::GeoPointArray, self::ObjectArray => Arr::map(Arr::wrap($value),
+                fn ($i) => (array) $i),
+        };
+    }
 }
