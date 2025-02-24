@@ -1,0 +1,106 @@
+{
+  "$schema": "https://laravel-ide.com/schema/laravel-ide-v2.json",
+  "completions": [
+    {
+      "complete": "eloquentFields",
+      "condition": [
+        {
+          "methodNames": [
+            "schemaAutocompletion"
+          ],
+          "classParentFqn": [
+            "\\Illuminate\\Database\\Eloquent\\Model"
+          ],
+          "place": "arrayKey"
+        }
+      ]
+    },
+    {
+      "complete": "staticStrings",
+      "options": {
+        "strings": [
+          "token_separators",
+          "symbols_to_index",
+          "default_sorting_field",
+          "enable_nested_fields"
+        ]
+      },
+      "condition": [
+        {
+          "methodNames": [
+            "schemaAutocompletion"
+          ],
+          "classParentFqn": [
+            "\\Illuminate\\Database\\Eloquent\\Model"
+          ],
+          "place": "arrayKey"
+        }
+      ]
+    },
+    {
+      "complete": "staticStrings",
+      "options": {
+        "strings": [
+          "auto",
+          "string",
+          "string[]",
+          "string*",
+          "int32",
+          "int32[]",
+          "int64",
+          "int64[]",
+          "float",
+          "float[]",
+          "bool",
+          "bool[]",
+          "geopoint",
+          "geopoint[]",
+          "geopolygon",
+          "object",
+          "object[]",
+          "image",
+          "searchable",
+          "optional",
+          "store",
+          "sort",
+          "facet",
+          "index",
+          "infix",
+          "stem",
+          "name",
+          "locale",
+          "transformTo",
+          "valueFrom",
+          "token_separators",
+          "symbols_to_index"
+        ]
+      },
+      "condition": [
+        {
+          "methodNames": [
+            "schemaAutocompletion"
+          ],
+          "classParentFqn": [
+            "\\Illuminate\\Database\\Eloquent\\Model"
+          ],
+          "classFqn": [
+            "Glimmer\\TypesenseSearchable\\Traits\\TypesenseSearchable"
+          ],
+          "place": "arrayValueWithKey"
+        },
+        {
+          "methodNames": [
+            "schemaAutocompletion"
+          ],
+          "classParentFqn": [
+            "\\Illuminate\\Database\\Eloquent\\Model"
+          ],
+          "classFqn": [
+            "Glimmer\\TypesenseSearchable\\Traits\\TypesenseSearchable"
+          ],
+          "place": "arrayValueWithKeyArray"
+        }
+      ]
+    }
+  ]
+}
