@@ -84,7 +84,7 @@
             "\\Illuminate\\Database\\Eloquent\\Model"
           ],
           "classFqn": [
-            "Glimmer\\TypesenseSearchable\\Traits\\TypesenseSearchable"
+            "Glimmer\\TypesenseSearchable\\TypesenseSearchable"
           ],
           "place": "arrayValueWithKey"
         },
@@ -96,7 +96,7 @@
             "\\Illuminate\\Database\\Eloquent\\Model"
           ],
           "classFqn": [
-            "Glimmer\\TypesenseSearchable\\Traits\\TypesenseSearchable"
+            "Glimmer\\TypesenseSearchable\\TypesenseSearchable"
           ],
           "place": "arrayValueWithKeyArray"
         }

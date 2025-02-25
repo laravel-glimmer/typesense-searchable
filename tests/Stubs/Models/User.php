@@ -3,7 +3,7 @@
 namespace Glimmer\TypesenseSearchable\Tests\Stubs\Models;
 
 use Glimmer\TypesenseSearchable\Contracts\HasTypesenseSchema;
-use Glimmer\TypesenseSearchable\Traits\TypesenseSearchable;
+use Glimmer\TypesenseSearchable\TypesenseSearchable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements HasTypesenseSchema

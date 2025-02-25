@@ -22,7 +22,7 @@ modifiers.
 Example usage in the `User` model:
 
 ```php
-use Glimmer\TypesenseSearchable\Traits\TypesenseSearchable;
+use Glimmer\TypesenseSearchable\TypesenseSearchable;
 use Glimmer\TypesenseSearchable\Contracts\HasTypesenseSchema;
 
 class User extends Authenticatable implements HasTypesenseSchema

@@ -1,6 +1,6 @@
 <?php
 
-namespace Glimmer\TypesenseSearchable\Traits;
+namespace Glimmer\TypesenseSearchable;
 
 use Carbon\Carbon;
 use Closure;
@@ -19,6 +19,7 @@ use Glimmer\TypesenseSearchable\Support\FieldParser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Laravel\Scout\Searchable;
+use ReflectionClass;
 
 /**
  * Trait TypesenseSearchable
@@ -88,21 +89,22 @@ trait TypesenseSearchable
     {
         if (self::$parsedSchema == null) {
             self::$parsedSchema = self::typesenseSchema();
+            $model = (new ReflectionClass(self::class))->newInstanceWithoutConstructor();
 
-            if (! Arr::exists(self::$parsedSchema, self::getModel()->getScoutKeyName())) {
-                self::$parsedSchema[self::getModel()->getScoutKeyName()] = [
-                    'string', 'valueFrom' => fn () => $this->getScoutKey(),
+            if ( ! Arr::exists(self::$parsedSchema, $model->getScoutKeyName())) {
+                self::$parsedSchema[$model->getScoutKeyName()] = [
+                    'string', 'valueFrom' => fn() => $this->getScoutKey(),
                 ];
             }
 
-            if (self::usesSoftDelete() && ! Arr::exists(self::$parsedSchema, self::getModel()->getDeletedAtColumn())) {
-                self::$parsedSchema[self::getModel()->getDeletedAtColumn()] = [
+            if (self::usesSoftDelete() && ! Arr::exists(self::$parsedSchema, $model->getDeletedAtColumn())) {
+                self::$parsedSchema[$model->getDeletedAtColumn()] = [
                     'int32', 'name:__soft_deleted', 'optional',
-                    'transformTo' => fn ($deleted_at) => $deleted_at?->timestamp,
+                    'transformTo' => fn($deleted_at) => $deleted_at?->timestamp,
                 ];
             }
 
-            self::$parsedSchema = array_map(fn ($field) => FieldParser::toArray($field), self::$parsedSchema);
+            self::$parsedSchema = Arr::map(self::$parsedSchema, fn($field) => FieldParser::toArray($field));
         }
 
         return self::$parsedSchema;
@@ -115,7 +117,7 @@ trait TypesenseSearchable
      */
     protected static function getFieldModifiers(string $field, array $options): array
     {
-        if (! Arr::exists(self::$fieldModifiers, $field)) {
+        if ( ! Arr::exists(self::$fieldModifiers, $field)) {
             $modifiers = Arr::only($options, FieldModifier::toArray());
 
             if (count($modifiers) > count(array_unique($modifiers, SORT_REGULAR))) {
@@ -123,7 +125,7 @@ trait TypesenseSearchable
             }
 
             self::$fieldModifiers[$field] = Arr::map($modifiers,
-                fn ($value, $modifier) => FieldModifier::from($modifier)->parse($value, self::class, $field));
+                fn($value, $modifier) => FieldModifier::from($modifier)->parse($value, self::class, $field));
         }
 
         return self::$fieldModifiers[$field];
@@ -136,7 +138,7 @@ trait TypesenseSearchable
      */
     protected static function getFieldType(string $field, array $options): string
     {
-        if (! Arr::exists(self::$fieldTypes, $field)) {
+        if ( ! Arr::exists(self::$fieldTypes, $field)) {
             $types = array_intersect(
                 Arr::except($options, array_merge(FieldModifier::toArray(), FieldParameter::toArray())),
                 FieldType::toArray()
@@ -160,12 +162,12 @@ trait TypesenseSearchable
      */
     protected static function getFieldParameters(string $field, array $options): array
     {
-        $parameters = Arr::where($options, fn ($value, $key) => in_array($value, FieldParameter::toArray()) ||
+        $parameters = Arr::where($options, fn($value, $key) => in_array($value, FieldParameter::toArray()) ||
             in_array($key, FieldParameter::toArray()));
 
-        return Arr::mapWithKeys($parameters, fn ($parameterOrBoolean, $keyOrParameter) => [
+        return Arr::mapWithKeys($parameters, fn($parameterOrBoolean, $keyOrParameter) => [
             FieldParser::paramName($keyOrParameter, $parameterOrBoolean) => FieldParameter::tryFrom($keyOrParameter)
-                ?->parse($parameterOrBoolean, self::class, $field) ?? true,
+                    ?->parse($parameterOrBoolean, self::class, $field) ?? true,
         ]);
     }
 
@@ -218,13 +220,13 @@ trait TypesenseSearchable
      *
      * @throws TypesenseSchemaMustReturnAnArray
      */
-    protected static function bootTypesenseSearchable(): void
+    public static function bootTypesenseSearchable(): void
     {
-        if (! method_exists(self::class, 'typesenseSchema')) {
+        if ( ! method_exists(self::class, 'typesenseSchema')) {
             throw TypesenseSchemaMustReturnAnArray::noMethod(self::class);
         }
 
-        if (! is_array(self::typesenseSchema())) {
+        if ( ! is_array(self::typesenseSchema())) {
             throw TypesenseSchemaMustReturnAnArray::noArray(self::class);
         }
 
@@ -264,7 +266,7 @@ trait TypesenseSearchable
             $modifiers = self::getFieldModifiers($field, $options);
 
             return [
-                $modifiers['name'] ?? $field => self::castFieldToType(
+                    $modifiers['name'] ?? $field => self::castFieldToType(
                     $field,
                     self::getFieldType($field, $options),
                     $modifiers['transformTo'] ?? null,
