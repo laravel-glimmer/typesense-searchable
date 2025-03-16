@@ -29,6 +29,7 @@ class User extends Authenticatable implements HasTypesenseSchema
                 'valueFrom' => fn ($user) => $user->name,
                 'token_separators' => '@#',
             ],
+            'updated_at' => 'excluded',
             'token_separators' => '@#',
             'symbols_to_index' => ['%', '&'],
             'enable_nested_fields' => false,

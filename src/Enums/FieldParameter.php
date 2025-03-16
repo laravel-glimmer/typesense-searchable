@@ -18,12 +18,19 @@ enum FieldParameter: string
 {
     use EnumCasesAsArray;
 
-    /** Enables the field to be in the default `query_by` list.
+    /**
+     * Enables the field to be in the default `query_by` list.
      *
      * Actually, this parameter is not an official Typesense field parameter, but it's used here as a parameter for convenience.
      * As all these parameters are resolved to a boolean, it will be excluded when creating the schema.
      */
     case Searchable = 'searchable';
+    /**
+     * Marks the field to be excluded from the schema on Typesense.
+     *
+     * Actually, this parameter is not an official Typesense field parameter, but it's used here as a parameter for convenience.
+     */
+    case Excluded = 'excluded';
     /** Marks the field as optional (nullable) on Typesense. Default: `false` */
     case Optional = 'optional';
     /** Marks the field to be stored on Typesense. Default: `true` */

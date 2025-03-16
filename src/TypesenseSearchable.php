@@ -44,6 +44,8 @@ trait TypesenseSearchable
 
     protected static array $fieldModifiers = [];
 
+    protected static array $fieldParameters = [];
+
     /**
      * Combines `typesenseFields()` and `typesenseExtraConfigurationsSchema()` to generate the full collection schema.
      */
@@ -57,8 +59,13 @@ trait TypesenseSearchable
      */
     public static function typesenseFieldsSchema(): array
     {
-        return array_values(Arr::map(self::getSchemaFields(), function ($options, $field) {
+        return array_values(Arr::whereNotNull((Arr::map(self::getSchemaFields(), function ($options, $field) {
             $modifiers = self::getFieldModifiers($field, $options);
+            $parameters = self::getFieldParameters($field, $options);
+
+            if ($parameters['excluded'] ?? false) {
+                return null;
+            }
 
             return [
                 'name' => $modifiers['name'] ?? $field,
@@ -68,9 +75,9 @@ trait TypesenseSearchable
                     'token_separators' => $modifiers['token_separators'] ?? null,
                     'symbols_to_index' => $modifiers['symbols_to_index'] ?? null,
                 ]),
-                ...array_diff_key(self::getFieldParameters($field, $options), array_flip(['searchable'])),
+                ...array_diff_key($parameters, array_flip(['searchable', 'excluded'])),
             ];
-        }));
+        }))));
     }
 
     /**
@@ -132,6 +139,27 @@ trait TypesenseSearchable
     }
 
     /**
+     * Gets the field parameters for the specified field and validates them.
+     *
+     * @throws FieldParameterError
+     * @throws EnableNestedFieldsError
+     */
+    protected static function getFieldParameters(string $field, array $options): array
+    {
+        if (! Arr::exists(self::$fieldParameters, $field)) {
+            $parameters = Arr::where($options, fn ($value, $key) => in_array($value, FieldParameter::toArray()) ||
+                in_array($key, FieldParameter::toArray()));
+
+            self::$fieldParameters[$field] = Arr::mapWithKeys($parameters, fn ($parameterOrBoolean, $keyOrParameter) => [
+                FieldParser::paramName($keyOrParameter, $parameterOrBoolean) => FieldParameter::tryFrom($keyOrParameter)
+                    ?->parse($parameterOrBoolean, self::class, $field) ?? true,
+            ]);
+        }
+
+        return self::$fieldParameters[$field];
+    }
+
+    /**
      * Gets the field type for the specified field and validates it is exactly one valid field type.
      *
      * @throws SchemaFieldTypeError
@@ -152,23 +180,6 @@ trait TypesenseSearchable
         }
 
         return self::$fieldTypes[$field];
-    }
-
-    /**
-     * Gets the field parameters for the specified field and validates them.
-     *
-     * @throws FieldParameterError
-     * @throws EnableNestedFieldsError
-     */
-    protected static function getFieldParameters(string $field, array $options): array
-    {
-        $parameters = Arr::where($options, fn ($value, $key) => in_array($value, FieldParameter::toArray()) ||
-            in_array($key, FieldParameter::toArray()));
-
-        return Arr::mapWithKeys($parameters, fn ($parameterOrBoolean, $keyOrParameter) => [
-            FieldParser::paramName($keyOrParameter, $parameterOrBoolean) => FieldParameter::tryFrom($keyOrParameter)
-                ?->parse($parameterOrBoolean, self::class, $field) ?? true,
-        ]);
     }
 
     /**
@@ -218,7 +229,7 @@ trait TypesenseSearchable
      *
      * @throws TypesenseSchemaMustReturnAnArray
      */
-    public static function bootTypesenseSearchable(): void
+    protected static function bootTypesenseSearchable(): void
     {
         if (! method_exists(self::class, 'typesenseSchema')) {
             throw TypesenseSchemaMustReturnAnArray::noMethod(self::class);
@@ -263,8 +274,12 @@ trait TypesenseSearchable
      */
     protected function transformFieldsBasedOnSchema(): array
     {
-        return Arr::mapWithKeys(self::getSchemaFields(), function ($options, $field) {
+        return Arr::whereNotNull(Arr::mapWithKeys(self::getSchemaFields(), function ($options, $field) {
             $modifiers = self::getFieldModifiers($field, $options);
+
+            if (self::getFieldParameters($field, $options)['excluded'] ?? false) {
+                return [];
+            }
 
             return [
                 $modifiers['name'] ?? $field => self::castFieldToType(
@@ -274,7 +289,7 @@ trait TypesenseSearchable
                     $modifiers['valueFrom'] ?? null
                 ),
             ];
-        });
+        }));
     }
 
     /**

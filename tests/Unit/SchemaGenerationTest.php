@@ -41,3 +41,7 @@ it('generates a correct typesense collection schema', function () use (
 it('generates a correct default query_by string', function () use ($expectedDefaultQueryBy) {
     expect(User::typesenseFieldsQueryBy())->toBe($expectedDefaultQueryBy);
 });
+
+it('excludes update_at from collection schema', function () {
+    expect(collect(User::typesenseFieldsSchema())->contains(fn ($item) => $item['name'] === 'updated_at'))->toBeFalse();
+});

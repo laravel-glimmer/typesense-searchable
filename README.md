@@ -80,6 +80,7 @@ Each field can be further configured with the following parameters.
 | Parameter    | Description                                                                   |
 |--------------|-------------------------------------------------------------------------------|
 | `searchable` | Adds the field to default search queries (default: `false`)                   |
+| `excluded`   | Excludes the field from `toSearchableArray` method (default: `false`)         |
 | `optional`   | Marks the field as optional (default: `false`)                                |
 | `store`      | Stores the field in Typesense for retrieval (default: `true`)                 |
 | `sort`       | Enables sorting on the field (default: `true` for numbers, otherwise `false`) |
