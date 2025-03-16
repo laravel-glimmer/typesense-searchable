@@ -4,5 +4,5 @@ namespace Glimmer\TypesenseSearchable\Contracts;
 
 interface HasTypesenseSchema
 {
-    public static function typesenseSchema(): array;
+    public static function searchableSchema(): array;
 }

@@ -14,7 +14,7 @@ use Glimmer\TypesenseSearchable\Exceptions\EnableNestedFieldsError;
 use Glimmer\TypesenseSearchable\Exceptions\FieldParameterError;
 use Glimmer\TypesenseSearchable\Exceptions\SchemaFieldModifiersError;
 use Glimmer\TypesenseSearchable\Exceptions\SchemaFieldTypeError;
-use Glimmer\TypesenseSearchable\Exceptions\TypesenseSchemaMustReturnAnArray;
+use Glimmer\TypesenseSearchable\Exceptions\SearchableSchemaMustReturnAnArray;
 use Glimmer\TypesenseSearchable\Support\FieldParser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -25,7 +25,7 @@ use ReflectionClass;
  * Trait TypesenseSearchable
  *
  * Enables a model to be searchable with Typesense by providing methods to generate the necessary schema
- * and configuration options directly from the model's defined `typesenseSchema()` method, rather than from a separate configuration.
+ * and configuration options directly from the model's defined `searchableSchema()` method, rather than from a separate configuration.
  * This trait also attempts to convert values to their specified Typesense types as defined in the schema.
  *
  * @mixin Model
@@ -55,7 +55,7 @@ trait TypesenseSearchable
     }
 
     /**
-     * Generates the Typesense schema fields based on the model's defined `typesenseSchema()`.
+     * Generates the Typesense schema fields based on the model's defined `searchableSchema()`.
      */
     public static function typesenseFieldsSchema(): array
     {
@@ -95,7 +95,7 @@ trait TypesenseSearchable
     protected static function parsedSchema(): array
     {
         if (self::$parsedSchema == null) {
-            self::$parsedSchema = self::typesenseSchema();
+            self::$parsedSchema = self::searchableSchema();
             $model = (new ReflectionClass(self::class))->newInstanceWithoutConstructor();
 
             if (! Arr::exists(self::$parsedSchema, $model->getScoutKeyName())) {
@@ -183,7 +183,7 @@ trait TypesenseSearchable
     }
 
     /**
-     * Generates the extra configurations for the collection schema based on the model's defined `typesenseSchema()`.
+     * Generates the extra configurations for the collection schema based on the model's defined `searchableSchema()`.
      */
     public static function typesenseExtraConfigurationsSchema(): array
     {
@@ -210,7 +210,7 @@ trait TypesenseSearchable
     }
 
     /**
-     * Generates the default query_by parameters based on the model's defined `typesenseSchema()`.
+     * Generates the default query_by parameters based on the model's defined `searchableSchema()`.
      */
     public static function typesenseFieldsQueryBy(): string
     {
@@ -222,21 +222,21 @@ trait TypesenseSearchable
     }
 
     /**
-     * Initialize the trait and validate model `typesenseSchema()` is defined.
+     * Initialize the trait and validate model `searchableSchema()` is defined.
      * Laravel calls this method automatically when the trait is used.
      * If running on Octane, it will call `typesenseSchemaFields()`
      * so the schema is cached before the first request.
      *
-     * @throws TypesenseSchemaMustReturnAnArray
+     * @throws SearchableSchemaMustReturnAnArray
      */
     protected static function bootTypesenseSearchable(): void
     {
-        if (! method_exists(self::class, 'typesenseSchema')) {
-            throw TypesenseSchemaMustReturnAnArray::noMethod(self::class);
+        if (! method_exists(self::class, 'searchableSchema')) {
+            throw SearchableSchemaMustReturnAnArray::noMethod(self::class);
         }
 
-        if (! is_array(self::typesenseSchema())) {
-            throw TypesenseSchemaMustReturnAnArray::noArray(self::class);
+        if (! is_array(self::searchableSchema())) {
+            throw SearchableSchemaMustReturnAnArray::noArray(self::class);
         }
 
         if (isset($_SERVER['LARAVEL_OCTANE']) && ((int) $_SERVER['LARAVEL_OCTANE'] === 1)) {
@@ -267,7 +267,7 @@ trait TypesenseSearchable
     }
 
     /**
-     * Transforms the fields based on the model's defined `typesenseSchema()`.
+     * Transforms the fields based on the model's defined `searchableSchema()`.
      *
      * @throws SchemaFieldModifiersError
      * @throws SchemaFieldTypeError

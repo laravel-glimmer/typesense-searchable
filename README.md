@@ -1,7 +1,7 @@
 # Typesense Searchable - Laravel Scout
 
-This is a trait that enables a Laravel Eloquent models to integrate with Typesense easily when using Laravel Scout,
-allowing it to be indexed and searched using a schema generated directly from the model’s `typesenseSchema()` method.
+This is a trait that enables Laravel Eloquent models to integrate with Typesense easily when using Laravel Scout,
+allowing it to be indexed and searched using a schema generated directly from the model’s `searchableSchema()` method.
 
 ### Features
 
@@ -15,9 +15,9 @@ allowing it to be indexed and searched using a schema generated directly from th
 
 ### Schema Definition in the Model
 
-Define the schema by implementing a static `typesenseSchema()` method in your model. This method should return an array,
-where each key is a field name and each value is a Typesense compatible field type with optional fields parameters and
-modifiers.
+Define the schema by implementing a static `searchableSchema()` method in your model.
+This method should return an array, where each key is a field name and each value is a Typesense compatible field type
+with optional fields parameters and modifiers.
 
 Example usage in the `User` model:
 
@@ -29,7 +29,7 @@ class User extends Authenticatable implements HasTypesenseSchema
 {
     use TypesenseSearchable;
 
-    public static function typesenseSchema(): array
+    public static function searchableSchema(): array
     {
         return self::schemaAutocompletion([
             'name' => 'string|searchable', // or ['string', 'searchable']
@@ -115,7 +115,7 @@ Typesense.
 Example:
 
 ```php
-public static function typesenseSchema(): array
+public static function searchableSchema(): array
 {
     return [
         'name' => [
@@ -147,7 +147,7 @@ public static function typesenseSchema(): array
 ### Schema Parameters as Fields
 
 The following are the schema-level parameters, which control schema-wide settings in Typesense. They can be included
-directly in the `typesenseSchema()` as fields but will be treated as schema parameters.
+directly in the `searchableSchema()` as fields but will be treated as schema parameters.
 
 | Parameter               | Description                                                 |
 |-------------------------|-------------------------------------------------------------|
@@ -159,7 +159,7 @@ directly in the `typesenseSchema()` as fields but will be treated as schema para
 **Example:**
 
 ```php
-public static function typesenseSchema(): array
+public static function searchableSchema(): array
 {
     return [
         'name' => 'string|searchable',
@@ -190,12 +190,12 @@ To integrate with Laravel Scout, configure the model's Typesense settings in the
 
 #### `typesenseFieldsSchema()`
 
-Generates the Typesense `fields` schema array by parsing `typesenseSchema()` and applying types, modifiers, and
+Generates the Typesense `fields` schema array by parsing `searchableSchema()` and applying types, modifiers, and
 parameters.
 
 #### `typesenseExtraConfigurationsSchema()`
 
-Generates the Typesense schema parameters by parsing `typesenseSchema()` and extracting schema-level parameters.
+Generates the Typesense schema parameters by parsing `searchableSchema()` and extracting schema-level parameters.
 
 #### `typesenseCollectionSchema()`
 

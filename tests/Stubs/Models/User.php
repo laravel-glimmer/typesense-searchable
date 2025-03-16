@@ -12,7 +12,7 @@ class User extends Authenticatable implements HasTypesenseSchema
 
     protected $guarded = ['id'];
 
-    public static function typesenseSchema(): array
+    public static function searchableSchema(): array
     {
         return self::schemaAutocompletion([
             'name' => 'string|searchable|infix:false',
