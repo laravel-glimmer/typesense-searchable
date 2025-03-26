@@ -1,0 +1,56 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ 8.4, 8.3 ]
+        laravel: [ 11.x, 12.x ]
+        dependency-versions: [ lowest, highest ]
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - ${{ matrix.dependency-versions }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+          coverage: none
+
+      - name: Require Laravel version
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 2
+          command: composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update --no-progress
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: ${{ matrix.dependency-versions }}
+          composer-options: --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Execute Tests
+        run: ./vendor/bin/pest --ci
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-${{ matrix.php }}-${{ matrix.laravel }}-${{ matrix.dependency-versions }}
+          path: vendor/orchestra/testbench-core/laravel/storage/logs
