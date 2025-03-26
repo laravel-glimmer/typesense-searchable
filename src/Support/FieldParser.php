@@ -21,10 +21,6 @@ class FieldParser
 
     private static function colonExplode($input, $key): array
     {
-        if ($key == 'enable_nested_fields') {
-            dd($input, $key);
-        }
-
         if (is_string($input) && str_contains($input, ':')) {
             [$parameter, $value] = explode(':', $input);
 

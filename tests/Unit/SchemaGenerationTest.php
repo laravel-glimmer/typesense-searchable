@@ -9,6 +9,7 @@ $expectedFieldSchema = [
     ['name' => 'created_at', 'type' => 'int32'],
     ['name' => 'custom_name', 'type' => 'string', 'token_separators' => ['@', '#']],
     ['name' => 'id', 'type' => 'string'],
+    ['name' => '__soft_deleted', 'type' => 'int32', 'optional' => true],
 ];
 
 $expectedExtraConfigurationsSchema = [
