@@ -239,7 +239,7 @@ trait TypesenseSearchable
             throw SearchableSchemaMustReturnAnArray::noArray(self::class);
         }
 
-        if (isset($_SERVER['LARAVEL_OCTANE']) && ((int) $_SERVER['LARAVEL_OCTANE'] === 1)) {
+        if (isset($_SERVER['LARAVEL_OCTANE'])) {
             self::typesenseFieldsSchema();
         }
     }
