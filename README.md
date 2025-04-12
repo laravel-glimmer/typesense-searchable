@@ -1,15 +1,37 @@
 # Typesense Searchable - Laravel Scout
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/glimmer/typesense-searchable?style=flat-square)](https://packagist.org/packages/glimmer/typesense-searchable)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/laravel-glimmer/typesense-searchable/tests.yml?branch=main&label=Tests&style=flat-square)](https://github.com/laravel-glimmer/typesense-searchable/actions/workflows/tests.yml?query=branch%3Amain)
+[![Laravel Octane Compatibility](https://img.shields.io/badge/Laravel%20Octane-Compatible-success?style=flat&logo=laravel)](https://laravel.com/docs/12.x/octane#introduction)
+
 This is a trait that enables Laravel Eloquent models to integrate with Typesense easily when using Laravel Scout,
 allowing it to be indexed and searched using a schema generated directly from the model’s `searchableSchema()` method.
 
 ### Features
 
-- **Dynamic Schema Generation**: Define parameters and field types directly within the model.
+- **Easier Schema Generation**: Define parameters and field types directly within the model.
 - **Field Transformation and Casting**: Automatic casting of fields to Typesense supported data types based on schema
   definitions.
+- **Automatic ID and Carbon Instances Conversion**: Automatically adds the `id` field to the schema and converts it to a
+  string type. If the `SoftDeletes` trait is used, the `__soft_deleted` field is also added and converted. Any field
+  that is a Carbon instance is automatically converted to timestamp.
+- **Model `toSearchableArray` Method Generation**: Automatically defines the required `toSearchableArray()` method in
+  the model, converting the model instance to a Typesense-compatible array for indexing based on the schema definition.
+
+> **Note:** In the examples below, the `id` field is not defined because it is added automatically to the schema.
+> The `created_at` is converted to timestamp automatically because is a Carbon instance and defined as Int32 (or Int64).
+> The `toSearchableArray` method is generated automatically based on the schema.
+
+> These defaults can be overridden by manually defining the `id` or `soft_deletes` fields in the schema, using the
+> `transformTo` modifier on Carbon instance fields, or redefining the `toSearchableArray` method.
 
 ---
+
+### Installation
+
+```bash
+composer require glimmer/typesense-searchable
+```
 
 ## Usage
 
@@ -46,6 +68,9 @@ class User extends Authenticatable implements HasTypesenseSchema
 }
 
 ```
+
+> Note: The `schemaAutocompletion()` method is a wrapper that returns the same array it receives but allows the Laravel
+> Idea plugin to make code completion for easier schema creation. It is not required to use it, but it is recommended.
 
 ### 1. Field Types
 
@@ -149,12 +174,12 @@ public static function searchableSchema(): array
 The following are the schema-level parameters, which control schema-wide settings in Typesense. They can be included
 directly in the `searchableSchema()` as fields but will be treated as schema parameters.
 
-| Parameter               | Description                                                 |
-|-------------------------|-------------------------------------------------------------|
-| `token_separators`      | Characters to separate tokens during indexing, e.g., `@#`.  |
-| `symbols_to_index`      | Symbols to retain in the index, e.g., `%&`.                 |
-| `default_sorting_field` | Field used for default sorting; must be `int32` or `float`. |
-| `enable_nested_fields`  | Boolean to enable or disable nested fields support.         |
+| Parameter               | Description                                                                     |
+|-------------------------|---------------------------------------------------------------------------------|
+| `token_separators`      | Characters to separate tokens used during indexing, e.g., `@#`.                 |
+| `symbols_to_index`      | Symbols to retain in the index, e.g., `%&`.                                     |
+| `default_sorting_field` | Field used for default sorting; Typesense requires it to be `int32` or `float`. |
+| `enable_nested_fields`  | Boolean to enable or disable nested fields support.                             |
 
 **Example:**
 
@@ -178,6 +203,31 @@ To integrate with Laravel Scout, configure the model's Typesense settings in the
 ```php
 'model-settings' => [
     User::class => [
+        'collection-schema' => [
+            'fields' => User::typesenseFieldsSchema(),
+            ...User::typesenseExtraConfigurationsSchema(),
+        ],
+        'search-parameters' => [
+            'query_by' => User::typesenseFieldsQueryBy(),
+        ],
+    ],
+],
+```
+
+> `typesenseFieldsSchema()` Generates the Typesense `fields` schema array by parsing `searchableSchema()` and applying
+> types, modifiers, and parameters.
+
+> `typesenseExtraConfigurationsSchema()` Generates the Typesense schema parameters by parsing `searchableSchema()` and
+> extracting schema-level parameters.
+
+> `typesenseFieldsQueryBy()` Generates an array of searchable fields for `query_by` in Typesense, based on fields marked
+> as `searchable`.
+
+Or if you are not manually modifying anything else in the `collection-schema` you may just use this shorter option:
+
+```php
+'model-settings' => [
+    User::class => [
         'collection-schema' => User::typesenseCollectionSchema(),
         'search-parameters' => [
             'query_by' => User::typesenseFieldsQueryBy(),
@@ -186,31 +236,5 @@ To integrate with Laravel Scout, configure the model's Typesense settings in the
 ],
 ```
 
-### Methods Summary
-
-#### `typesenseFieldsSchema()`
-
-Generates the Typesense `fields` schema array by parsing `searchableSchema()` and applying types, modifiers, and
-parameters.
-
-#### `typesenseExtraConfigurationsSchema()`
-
-Generates the Typesense schema parameters by parsing `searchableSchema()` and extracting schema-level parameters.
-
-#### `typesenseCollectionSchema()`
-
-Returns the entire collection schema for Typesense, including schema fields `typesenseSchemaFields()` and schema extra
-configurations `typesenseSchemaExtraConfigurations()` combined.
-
-#### `typesenseFieldsQueryBy()`
-
-Generates an array of searchable fields for `query_by` in Typesense, based on fields marked as `searchable`.
-
-#### `toSearchableArray()`
-
-Converts the model instance to a Typesense-compatible array for indexing, transforming fields based on the schema.
-
-#### `schemaAutocompletion()`
-
-A wrapper that returns the same array it receives but allows Laravel Idea plugin to make code completion for
-an easier schema creation.
+> `typesenseCollectionSchema()` Returns the entire collection schema for Typesense, including schema fields
+> `typesenseSchemaFields()` and schema extra configurations `typesenseSchemaExtraConfigurations()` combined.
